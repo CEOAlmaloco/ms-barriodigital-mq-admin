@@ -1,0 +1,33 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: ms-barriodigital-mq-admin
+  config:
+    import: optional:file:.env[.properties]
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+barriodigital:
+  mq:
+    protected-names:
+      - amq.direct
+      - amq.fanout
+      - amq.topic
+      - amq.headers
+      - amq.match
+      - amq.rabbitmq.trace
+    protected-prefixes:
+      - amq.
+      - cmd.
+      - q.cmd.
