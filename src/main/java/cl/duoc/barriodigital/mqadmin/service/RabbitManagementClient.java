@@ -1,7 +1,9 @@
 package cl.duoc.barriodigital.mqadmin.service;
 
 import cl.duoc.barriodigital.mqadmin.config.MqManagementProperties;
+import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import cl.duoc.barriodigital.mqadmin.web.QueueView;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
@@ -58,8 +60,54 @@ public class RabbitManagementClient {
         }
     }
 
+    public ExchangeView getExchange(String name) {
+        try {
+            JsonNode body = get("/api/exchanges/" + encode(vhost) + "/" + encode(name));
+            if (body == null || body.isMissingNode()) {
+                throw new ResourceNotFoundException("El exchange no existe");
+            }
+            return toExchange(body);
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().value() == 404) {
+                throw new ResourceNotFoundException("El exchange no existe");
+            }
+            throw ex;
+        }
+    }
+
+    public boolean hasBinding(BindingDeclaration declaration) {
+        String routingKey = declaration.routingKey() == null ? "" : declaration.routingKey();
+        String path = "/api/bindings/" + encode(vhost)
+                + "/e/" + encode(declaration.exchange())
+                + "/q/" + encode(declaration.queue());
+        try {
+            JsonNode body = get(path);
+            if (body == null || !body.isArray()) {
+                return false;
+            }
+            for (JsonNode node : body) {
+                if (routingKey.equals(node.path("routing_key").asText(""))) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().value() == 404) {
+                return false;
+            }
+            throw ex;
+        }
+    }
+
     private JsonNode get(String path) {
         return http.get().uri(base.resolve(path)).retrieve().body(JsonNode.class);
+    }
+
+    static ExchangeView toExchange(JsonNode node) {
+        return new ExchangeView(
+                node.path("name").asText(),
+                node.path("type").asText(),
+                node.path("durable").asBoolean(true));
     }
 
     static QueueView toView(JsonNode node) {
