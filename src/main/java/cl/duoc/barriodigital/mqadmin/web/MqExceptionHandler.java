@@ -2,6 +2,7 @@ package cl.duoc.barriodigital.mqadmin.web;
 
 import cl.duoc.barriodigital.mqadmin.domain.AlreadyExistsException;
 import cl.duoc.barriodigital.mqadmin.domain.ConfigurationConflictException;
+import cl.duoc.barriodigital.mqadmin.domain.InvalidArgumentException;
 import cl.duoc.barriodigital.mqadmin.domain.ProtectedResourceException;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,11 @@ public class MqExceptionHandler {
     public ResponseEntity<Map<String, Object>> status(ResponseStatusException ex) {
         HttpStatusCode status = ex.getStatusCode();
         return ResponseEntity.status(status).body(body(status.value(), ex.getReason() == null ? "" : ex.getReason()));
+    }
+
+    @ExceptionHandler(InvalidArgumentException.class)
+    public ResponseEntity<Map<String, Object>> badRequest(InvalidArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body(400, ex.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
