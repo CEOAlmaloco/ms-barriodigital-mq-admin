@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/mq/exchanges")
+@Tag(name = "Exchanges")
 public class ExchangeController {
 
     private final ExchangeHttpService exchanges;
@@ -28,6 +30,7 @@ public class ExchangeController {
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
             @RequestBody ExchangeRequest body) {
         AdminCaller.requireAdmin(roles);
+        MqPayloadValidator.check(body);
         boolean durable = body.durable() == null || body.durable();
         ExchangeDeclaration declaration = new ExchangeDeclaration(
                 body.name(),
@@ -41,6 +44,7 @@ public class ExchangeController {
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
             @PathVariable String name) {
         AdminCaller.requireAdmin(roles);
+        MqPayloadValidator.requireName(name);
         exchanges.delete(name);
         return ResponseEntity.noContent().build();
     }
