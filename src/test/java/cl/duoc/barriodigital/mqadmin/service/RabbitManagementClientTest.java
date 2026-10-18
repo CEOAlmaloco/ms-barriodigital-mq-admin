@@ -1,7 +1,9 @@
 package cl.duoc.barriodigital.mqadmin.service;
 
 import cl.duoc.barriodigital.mqadmin.config.MqManagementProperties;
+import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import cl.duoc.barriodigital.mqadmin.web.QueueView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
@@ -14,8 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RabbitManagementClientTest {
 
@@ -81,5 +85,58 @@ class RabbitManagementClientTest {
         assertNull(queues.getFirst().ttl());
 
         assertThrows(ResourceNotFoundException.class, () -> client.getQueue("q.no.existe"));
+    }
+
+    @Test
+    void exchangeYBindingSalenDeLaApiHttp() throws Exception {
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/api/exchanges", exchange -> {
+            String path = exchange.getRequestURI().getRawPath();
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            if (path.contains("no.existe")) {
+                byte[] body = "{\"error\":\"Object Not Found\"}".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(404, body.length);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(body);
+                }
+                return;
+            }
+            byte[] body = """
+                    {"name":"demo.topic","type":"topic","durable":true}
+                    """.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.createContext("/api/bindings", exchange -> {
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            byte[] body = """
+                    [{"routing_key":"aviso.nuevo","source":"demo.topic","destination":"q.demo.avisos"}]
+                    """.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+
+        MqManagementProperties properties = new MqManagementProperties();
+        properties.setUrl("http://127.0.0.1:" + server.getAddress().getPort());
+        properties.setUsername("barriodigital");
+        properties.setPassword("secreto");
+        properties.setVhost("/");
+        RabbitManagementClient client = new RabbitManagementClient(properties);
+
+        ExchangeView view = client.getExchange("demo.topic");
+        assertEquals("demo.topic", view.name());
+        assertEquals("topic", view.type());
+        assertTrue(view.durable());
+        assertThrows(ResourceNotFoundException.class, () -> client.getExchange("no.existe"));
+
+        BindingDeclaration present = new BindingDeclaration("demo.topic", "q.demo.avisos", "aviso.nuevo");
+        BindingDeclaration absent = new BindingDeclaration("demo.topic", "q.demo.avisos", "otro");
+        assertTrue(client.hasBinding(present));
+        assertFalse(client.hasBinding(absent));
     }
 }

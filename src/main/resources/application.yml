@@ -20,6 +20,12 @@ management:
       exposure:
         include: health,info
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 barriodigital:
   mq:
     protected-names:
@@ -29,6 +35,7 @@ barriodigital:
       - amq.headers
       - amq.match
       - amq.rabbitmq.trace
+    # amq. sigue bloqueado en el servicio. La API lo responde 400 antes de llegar aquí.
     protected-prefixes:
       - amq.
       - cmd.
