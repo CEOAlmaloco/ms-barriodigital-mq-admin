@@ -1,5 +1,7 @@
 server:
   port: 8084
+  error:
+    include-message: always
 
 spring:
   application:
@@ -31,3 +33,8 @@ barriodigital:
       - amq.
       - cmd.
       - q.cmd.
+    management:
+      url: ${RABBITMQ_MANAGEMENT_URL:http://127.0.0.1:15672}
+      username: ${RABBITMQ_USER:guest}
+      password: ${RABBITMQ_PASSWORD:guest}
+      vhost: ${RABBITMQ_VHOST:/}
