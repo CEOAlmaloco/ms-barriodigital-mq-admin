@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/mq/bindings")
+@Tag(name = "Bindings")
 public class BindingController {
 
     private final BindingHttpService bindings;
@@ -28,6 +30,7 @@ public class BindingController {
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
             @RequestBody BindingRequest body) {
         AdminCaller.requireAdmin(roles);
+        MqPayloadValidator.check(body);
         BindingDeclaration declaration = new BindingDeclaration(body.exchange(), body.queue(), body.routingKey());
         return ResponseEntity.status(HttpStatus.CREATED).body(bindings.create(declaration));
     }
@@ -42,6 +45,9 @@ public class BindingController {
         if (exchange == null || queue == null || routingKey == null) {
             throw new InvalidArgumentException("Faltan exchange, queue o routingKey");
         }
+        MqPayloadValidator.requireName(exchange);
+        MqPayloadValidator.requireName(queue);
+        MqPayloadValidator.requireRoutingKey(routingKey);
         bindings.delete(new BindingDeclaration(exchange, queue, routingKey));
         return ResponseEntity.noContent().build();
     }
