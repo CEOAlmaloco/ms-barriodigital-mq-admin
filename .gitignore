@@ -1,5 +1,6 @@
 # === Build Maven ===
 target/
+node_modules/
 !.mvn/wrapper/maven-wrapper.jar
 
 # === IDE ===
@@ -27,6 +28,7 @@ hs_err_pid*
 *.p12
 *.jks
 *.key
+wallet/
 
 # === OS ===
 .DS_Store
