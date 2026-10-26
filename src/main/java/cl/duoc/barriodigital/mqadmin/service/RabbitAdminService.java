@@ -24,6 +24,10 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Crea, borra, vacía y enlaza recursos por AMQP.
+ * No lista el vhost: RabbitMQ solo publica ese inventario en la API HTTP de Management.
+ */
 @Service
 public class RabbitAdminService {
 
@@ -33,11 +37,13 @@ public class RabbitAdminService {
     private final AmqpAdmin admin;
     private final MqProtectionProperties protection;
 
+    /** Recibe el cliente AMQP de Spring y la lista de nombres protegidos. */
     public RabbitAdminService(AmqpAdmin admin, MqProtectionProperties protection) {
         this.admin = admin;
         this.protection = protection;
     }
 
+    /** Declara la cola por AMQP. Si el nombre está reservado, no la crea. Devuelve mensajes y consumidores. */
     public QueueStatus createQueue(QueueDeclaration declaration) {
         rejectIfProtected(declaration.name());
         try {
@@ -48,6 +54,7 @@ public class RabbitAdminService {
         return readQueue(declaration.name());
     }
 
+    /** Borra la cola por AMQP. Si RabbitMQ indica que no estaba, lanza "La cola no existe". */
     public void deleteQueue(String name) {
         rejectIfProtected(name);
         try {
@@ -61,6 +68,7 @@ public class RabbitAdminService {
         }
     }
 
+    /** Vacía los mensajes y deja la cola declarada. */
     public void purgeQueue(String name) {
         rejectIfProtected(name);
         try {
@@ -70,6 +78,7 @@ public class RabbitAdminService {
         }
     }
 
+    /** Declara el exchange del tipo pedido. autoDelete queda en false para que no desaparezca al quedarse sin colas. */
     public ExchangeDeclaration createExchange(ExchangeDeclaration declaration) {
         rejectIfProtected(declaration.name());
         try {
@@ -80,6 +89,7 @@ public class RabbitAdminService {
         return declaration;
     }
 
+    /** Borra el exchange por AMQP. Si no estaba, lanza "El exchange no existe". */
     public void deleteExchange(String name) {
         rejectIfProtected(name);
         try {
@@ -93,6 +103,7 @@ public class RabbitAdminService {
         }
     }
 
+    /** Declara el binding por AMQP. Si falta la cola o el exchange, indica cuál de los dos. */
     public void bind(BindingDeclaration declaration) {
         rejectIfProtected(declaration.exchange());
         rejectIfProtected(declaration.queue());
@@ -106,6 +117,7 @@ public class RabbitAdminService {
         }
     }
 
+    /** Quita el binding por AMQP. Si no estaba, lanza "El binding no existe". */
     public void unbind(BindingDeclaration declaration) {
         rejectIfProtected(declaration.exchange());
         rejectIfProtected(declaration.queue());
@@ -119,10 +131,12 @@ public class RabbitAdminService {
         }
     }
 
+    /** Lee nombre, cantidad de mensajes y cantidad de consumidores por AMQP. */
     public QueueStatus queueInfo(String name) {
         return readQueue(name);
     }
 
+    /** Lee la cola. Si RabbitMQ no la conoce, lanza "La cola no existe". */
     private QueueStatus readQueue(String name) {
         QueueInformation info = admin.getQueueInfo(name);
         if (info == null) {
@@ -131,6 +145,7 @@ public class RabbitAdminService {
         return new QueueStatus(info.getName(), info.getMessageCount(), info.getConsumerCount());
     }
 
+    /** Cuando falla un binding, distingue "La cola no existe" de "El exchange no existe". */
     private ResourceNotFoundException missingEndpoint(String queue) {
         if (admin.getQueueInfo(queue) == null) {
             return new ResourceNotFoundException("La cola no existe");
@@ -138,12 +153,18 @@ public class RabbitAdminService {
         return new ResourceNotFoundException("El exchange no existe");
     }
 
+    /** Lanza la excepción de nombre reservado si la protección incluye ese nombre. La capa HTTP responde 409. */
     private void rejectIfProtected(String name) {
         if (protection.isProtected(name)) {
             throw new ProtectedResourceException();
         }
     }
 
+    /**
+     * Traduce el cierre del canal AMQP.
+     * El código 406 significa que el nombre existe con otras propiedades. El código 404 significa que no existe.
+     * Cualquier otro error se propaga sin cambiarlo.
+     */
     private RuntimeException translated(RuntimeException ex, String resource) {
         Integer code = replyCode(ex);
         if (code != null && code == PRECONDITION_FAILED) {
@@ -155,6 +176,7 @@ public class RabbitAdminService {
         return ex;
     }
 
+    /** Elige la frase "no existe" según se trate de cola, exchange o binding. */
     private static String notFoundMessage(String resource) {
         return switch (resource) {
             case "exchange" -> "El exchange no existe";
@@ -163,6 +185,7 @@ public class RabbitAdminService {
         };
     }
 
+    /** Recorre las causas hasta encontrar el código con el que RabbitMQ cerró el canal. */
     private static Integer replyCode(Throwable error) {
         Throwable current = error;
         while (current != null) {
@@ -175,6 +198,11 @@ public class RabbitAdminService {
         return null;
     }
 
+    /**
+     * Arma la cola de Spring para declararla por AMQP.
+     * durable sigue la declaración; exclusive y autoDelete quedan en false.
+     * Si hay TTL o dead-letter, los envía como x-message-ttl y x-dead-letter-*.
+     */
     private static Queue toQueue(QueueDeclaration declaration) {
         Map<String, Object> arguments = new HashMap<>();
         if (declaration.ttlMillis() != null) {
@@ -189,6 +217,7 @@ public class RabbitAdminService {
         return new Queue(declaration.name(), declaration.durable(), false, false, arguments);
     }
 
+    /** Elige DirectExchange, TopicExchange o FanoutExchange según la declaración. */
     private static Exchange toExchange(ExchangeDeclaration declaration) {
         return switch (declaration.type()) {
             case DIRECT -> new DirectExchange(declaration.name(), declaration.durable(), false);
@@ -197,6 +226,7 @@ public class RabbitAdminService {
         };
     }
 
+    /** Arma el binding hacia una cola. Si la routing key viene null, usa texto vacío. */
     private static Binding toBinding(BindingDeclaration declaration) {
         String routingKey = declaration.routingKey() == null ? "" : declaration.routingKey();
         return new Binding(

@@ -13,6 +13,10 @@ import org.springframework.web.method.HandlerMethod;
 
 import java.util.Map;
 
+/**
+ * Arma la descripción OpenAPI de mq-admin.
+ * No crea recursos: documenta ejemplos de alta y los errores 400, 403, 404 y 409.
+ */
 @Configuration
 public class MqOpenApi {
 
@@ -23,6 +27,7 @@ public class MqOpenApi {
     static final String BINDING_EXAMPLE = """
             {"exchange":"demo.topic","queue":"q.demo.avisos","routingKey":"aviso.nuevo"}""";
 
+    /** Título, versión y la frase de que hace falta el rol Admin. */
     @Bean
     OpenAPI mqAdminApi() {
         return new OpenAPI().info(new Info()
@@ -31,6 +36,10 @@ public class MqOpenApi {
                 .description("Administración de colas, exchanges y bindings. Exige rol Admin en X-User-Roles."));
     }
 
+    /**
+     * Recorre cada operación HTTP.
+     * Pone un ejemplo JSON en los POST y documenta los códigos 201, 204, 400, 403, 404 y 409.
+     */
     @Bean
     OperationCustomizer mqOperations() {
         return (operation, handler) -> {
@@ -49,6 +58,7 @@ public class MqOpenApi {
         };
     }
 
+    /** Sustituye el 200 que inventa Swagger: crear es 201, borrar y vaciar son 204. */
     private static void successCode(ApiResponses responses, String method) {
         ApiResponse ok = responses.remove("200");
         if (ok == null) {
@@ -67,6 +77,7 @@ public class MqOpenApi {
         responses.addApiResponse("200", ok);
     }
 
+    /** Pega el JSON de ejemplo en el cuerpo del POST, si Swagger ya tiene ese cuerpo. */
     private static void example(io.swagger.v3.oas.models.Operation operation, String json) {
         if (operation.getRequestBody() == null || operation.getRequestBody().getContent() == null) {
             return;
@@ -77,6 +88,7 @@ public class MqOpenApi {
         }
     }
 
+    /** Agrega las respuestas de error que cada método puede devolver. */
     private static void codes(ApiResponses responses, HandlerMethod handler, String method) {
         responses.addApiResponse("403", error(403, AdminCaller.FORBIDDEN_MESSAGE));
         boolean writes = "create".equals(method) || "delete".equals(method) || "purge".equals(method) || "get".equals(method);
@@ -96,6 +108,7 @@ public class MqOpenApi {
         }
     }
 
+    /** Arma una respuesta de error de ejemplo para Swagger. */
     private static ApiResponse error(int status, String message) {
         MediaType media = new MediaType();
         media.setExample(Map.of(

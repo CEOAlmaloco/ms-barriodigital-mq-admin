@@ -15,7 +15,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * El rol se resuelve antes de leer el cuerpo. Un JSON inválido sin Admin responde 403, no 400.
+ * Comprueba el rol Admin antes de leer el cuerpo.
+ * Si no es Admin, responde 403 y no interpreta el JSON: un cuerpo inválido sin Admin es 403, no 400.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -23,16 +24,22 @@ public class AdminGateFilter extends OncePerRequestFilter {
 
     private final ObjectMapper mapper;
 
+    /** Guarda el conversor que escribe el JSON de error. */
     public AdminGateFilter(ObjectMapper mapper) {
         this.mapper = mapper;
     }
 
+    /** Devuelve true para saltarse el filtro. Health y Swagger no empiezan por /api/mq/. */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uri == null || !uri.startsWith("/api/mq/");
     }
 
+    /**
+     * Si no es Admin, escribe el JSON 403 y corta la cadena.
+     * Si es Admin, deja pasar la petición al controller.
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

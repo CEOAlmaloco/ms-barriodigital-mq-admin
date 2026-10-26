@@ -3,7 +3,9 @@ package cl.duoc.barriodigital.mqadmin.web;
 import cl.duoc.barriodigital.mqadmin.domain.QueueDeclaration;
 
 /**
- * {@code messages} es el total del Management: listos más sin confirmar.
+ * Respuesta al listar, consultar o crear una cola.
+ * messages es el total del Management: listos más sin confirmar.
+ * Incluye durable, el TTL y el destino de dead-letter.
  */
 public record QueueView(
         String name,
@@ -15,6 +17,7 @@ public record QueueView(
         String deadLetterRoutingKey
 ) {
 
+    /** Arma la respuesta de una cola recién creada: 0 mensajes y 0 consumidores. */
     public static QueueView created(QueueDeclaration declaration) {
         return new QueueView(
                 declaration.name(),

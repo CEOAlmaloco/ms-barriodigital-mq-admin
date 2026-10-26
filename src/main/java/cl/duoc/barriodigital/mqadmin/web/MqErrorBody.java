@@ -8,11 +8,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Arma el JSON de error que devuelve mq-admin.
+ * Incluye la hora, el código HTTP, la frase corta del estado, el motivo y la ruta llamada.
+ */
 public final class MqErrorBody {
 
+    /** Nadie instancia esta clase: solo se usa el método of. */
     private MqErrorBody() {
     }
 
+    /**
+     * Construye el mapa del error.
+     * status es el código HTTP, message es la frase clara y path es la URL llamada.
+     */
     public static Map<String, Object> of(int status, String message, String path) {
         HttpStatus resolved = HttpStatus.resolve(status);
         Map<String, Object> body = new LinkedHashMap<>();

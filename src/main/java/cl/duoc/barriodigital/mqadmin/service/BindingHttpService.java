@@ -10,6 +10,10 @@ import cl.duoc.barriodigital.mqadmin.web.BindingView;
 import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import org.springframework.stereotype.Service;
 
+/**
+ * Orquesta el alta y la baja de bindings.
+ * Comprueba en el Management que el exchange y la cola existan antes de crear o borrar el enlace por AMQP.
+ */
 @Service
 public class BindingHttpService {
 
@@ -19,6 +23,7 @@ public class BindingHttpService {
     private final RabbitManagementClient management;
     private final MqProtectionProperties protection;
 
+    /** Recibe quién declara por AMQP, quién consulta el Management y la lista de nombres protegidos. */
     public BindingHttpService(
             RabbitAdminService admin,
             RabbitManagementClient management,
@@ -28,6 +33,10 @@ public class BindingHttpService {
         this.protection = protection;
     }
 
+    /**
+     * Crea el binding por AMQP.
+     * Exige exchange y cola existentes, routing key válida y que el enlace no esté ya.
+     */
     public BindingView create(BindingDeclaration declaration) {
         ExchangeView exchange = requireEndpoints(declaration);
         requireRoutingKey(exchange, declaration.routingKey());
@@ -39,7 +48,9 @@ public class BindingHttpService {
     }
 
     /**
-     * {@code queue.unbind} no falla si el binding no existe. El 404 sale del Management.
+     * Borra el binding por AMQP.
+     * Si no está, responde que no existe. queue.unbind no falla al quitar un enlace ausente,
+     * así que el 404 se decide consultando el Management.
      */
     public void delete(BindingDeclaration declaration) {
         ExchangeView exchange = requireEndpoints(declaration);
@@ -50,6 +61,10 @@ public class BindingHttpService {
         admin.unbind(declaration);
     }
 
+    /**
+     * Rechaza el exchange o la cola si están reservados: {@code cmd.*} y {@code q.cmd.*} responden 409.
+     * Después exige que ambos existan en el Management y devuelve el exchange para saber si es fanout.
+     */
     private ExchangeView requireEndpoints(BindingDeclaration declaration) {
         if (protection.isProtected(declaration.exchange()) || protection.isProtected(declaration.queue())) {
             throw new ProtectedResourceException();
@@ -59,6 +74,10 @@ public class BindingHttpService {
         return exchange;
     }
 
+    /**
+     * En fanout la routing key puede ir vacía.
+     * En direct y topic, una routing key vacía es un error 400.
+     */
     private static void requireRoutingKey(ExchangeView exchange, String routingKey) {
         if ("fanout".equalsIgnoreCase(exchange.type())) {
             return;

@@ -8,6 +8,10 @@ import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
 import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import org.springframework.stereotype.Service;
 
+/**
+ * Orquesta el alta y la baja de exchanges.
+ * Rechaza un nombre reservado o uno que el Management ya ve, y solo entonces crea o borra por AMQP.
+ */
 @Service
 public class ExchangeHttpService {
 
@@ -15,6 +19,7 @@ public class ExchangeHttpService {
     private final RabbitManagementClient management;
     private final MqProtectionProperties protection;
 
+    /** Recibe quién declara por AMQP, quién consulta el Management y la lista de nombres protegidos. */
     public ExchangeHttpService(
             RabbitAdminService admin,
             RabbitManagementClient management,
@@ -24,6 +29,10 @@ public class ExchangeHttpService {
         this.protection = protection;
     }
 
+    /**
+     * Crea el exchange por AMQP si el nombre no está reservado y todavía no existe.
+     * Si el Management ya lo ve, lanza "El exchange ya existe".
+     */
     public ExchangeView create(ExchangeDeclaration declaration) {
         if (protection.isProtected(declaration.name())) {
             throw new ProtectedResourceException();
@@ -38,8 +47,9 @@ public class ExchangeHttpService {
     }
 
     /**
-     * {@code deleteExchange} de Spring solo devuelve false ante un {@code IOException}.
-     * El 404 se decide con el Management, y un nombre reservado sigue siendo 409 aunque falte.
+     * Borra el exchange por AMQP.
+     * Un nombre {@code cmd.*} o {@code q.cmd.*} responde 409 aunque no exista.
+     * El 404 lo decide el Management, porque deleteExchange de Spring solo devuelve false ante un IOException.
      */
     public void delete(String name) {
         if (protection.isProtected(name)) {

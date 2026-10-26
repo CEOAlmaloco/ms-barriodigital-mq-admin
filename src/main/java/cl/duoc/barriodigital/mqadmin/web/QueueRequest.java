@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+/**
+ * Cuerpo para crear una cola.
+ * Trae el nombre, si sobrevive a un reinicio, el TTL en milisegundos y, si se quiere, el dead-letter.
+ */
 @DeadLetter
 @Schema(description = "Cola nueva. durable vale true si se omite.")
 public record QueueRequest(

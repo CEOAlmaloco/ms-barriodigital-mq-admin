@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * HTTP de bindings.
+ * Crea o borra el enlace entre un exchange y una cola. Solo admite el rol Admin.
+ */
 @RestController
 @RequestMapping("/api/mq/bindings")
 @Tag(name = "Bindings")
@@ -21,10 +25,12 @@ public class BindingController {
 
     private final BindingHttpService bindings;
 
+    /** Recibe el servicio que crea y borra bindings. */
     public BindingController(BindingHttpService bindings) {
         this.bindings = bindings;
     }
 
+    /** POST /api/mq/bindings. Crea el binding por AMQP y responde 201. */
     @PostMapping
     public ResponseEntity<BindingView> create(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
@@ -35,6 +41,10 @@ public class BindingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(bindings.create(declaration));
     }
 
+    /**
+     * DELETE /api/mq/bindings. Quita el binding por AMQP y responde 204.
+     * exchange, queue y routingKey viajan en la query. Si falta uno, responde 400.
+     */
     @DeleteMapping
     public ResponseEntity<Void> delete(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,

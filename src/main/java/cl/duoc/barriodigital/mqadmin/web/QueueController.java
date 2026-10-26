@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * HTTP de colas.
+ * Lista, consulta, crea, vacía o borra una cola. Solo admite el rol Admin.
+ * El listado sale de la API HTTP de Management; crear y borrar usan AMQP.
+ */
 @RestController
 @RequestMapping("/api/mq/queues")
 @Tag(name = "Colas")
@@ -23,10 +28,12 @@ public class QueueController {
 
     private final QueueHttpService queues;
 
+    /** Recibe el servicio que lista, crea, vacía y borra colas. */
     public QueueController(QueueHttpService queues) {
         this.queues = queues;
     }
 
+    /** GET /api/mq/queues. Devuelve las colas del vhost que publica el Management. */
     @GetMapping
     public List<QueueView> list(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles) {
@@ -34,6 +41,7 @@ public class QueueController {
         return queues.list();
     }
 
+    /** GET /api/mq/queues/{name}. Devuelve una cola. Si el nombre es inválido, responde 400. */
     @GetMapping("/{name}")
     public QueueView get(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
@@ -43,6 +51,10 @@ public class QueueController {
         return queues.get(name);
     }
 
+    /**
+     * POST /api/mq/queues. Crea la cola por AMQP y responde 201.
+     * Si durable no viene en el JSON, se declara durable.
+     */
     @PostMapping
     public ResponseEntity<QueueView> create(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
@@ -59,6 +71,7 @@ public class QueueController {
         return ResponseEntity.status(HttpStatus.CREATED).body(queues.create(declaration));
     }
 
+    /** DELETE /api/mq/queues/{name}/messages. Vacía la cola y responde 204, sin cuerpo. */
     @DeleteMapping("/{name}/messages")
     public ResponseEntity<Void> purge(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
@@ -69,6 +82,7 @@ public class QueueController {
         return ResponseEntity.noContent().build();
     }
 
+    /** DELETE /api/mq/queues/{name}. Borra la cola por AMQP y responde 204. */
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,

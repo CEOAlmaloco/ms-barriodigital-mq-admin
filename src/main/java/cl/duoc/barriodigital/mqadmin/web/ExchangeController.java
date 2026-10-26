@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * HTTP de exchanges.
+ * Crea o borra un exchange. Solo admite el rol Admin.
+ */
 @RestController
 @RequestMapping("/api/mq/exchanges")
 @Tag(name = "Exchanges")
@@ -21,10 +25,15 @@ public class ExchangeController {
 
     private final ExchangeHttpService exchanges;
 
+    /** Recibe el servicio que crea y borra exchanges. */
     public ExchangeController(ExchangeHttpService exchanges) {
         this.exchanges = exchanges;
     }
 
+    /**
+     * POST /api/mq/exchanges. Crea el exchange por AMQP y responde 201.
+     * Si durable no viene, se declara durable.
+     */
     @PostMapping
     public ResponseEntity<ExchangeView> create(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
@@ -39,6 +48,7 @@ public class ExchangeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(exchanges.create(declaration));
     }
 
+    /** DELETE /api/mq/exchanges/{name}. Borra el exchange por AMQP y responde 204. */
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(
             @RequestHeader(value = AdminCaller.HEADER_USER_ROLES, required = false) String roles,
