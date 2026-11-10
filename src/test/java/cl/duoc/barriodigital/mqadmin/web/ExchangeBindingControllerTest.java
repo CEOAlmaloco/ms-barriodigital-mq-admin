@@ -1,16 +1,20 @@
 package cl.duoc.barriodigital.mqadmin.web;
 
+import cl.duoc.barriodigital.mqadmin.config.InternalTokenProperties;
 import cl.duoc.barriodigital.mqadmin.config.MqProtectionProperties;
 import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ExchangeDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ExchangeType;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditEventFactory;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditPublisher;
 import cl.duoc.barriodigital.mqadmin.service.BindingHttpService;
 import cl.duoc.barriodigital.mqadmin.service.ExchangeHttpService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitAdminService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitManagementClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -27,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = {ExchangeController.class, BindingController.class})
-@Import({ExchangeHttpService.class, BindingHttpService.class, MqExceptionHandler.class})
+@AutoConfigureMockMvc(addFilters = false)
+@Import({ExchangeHttpService.class, BindingHttpService.class, MqExceptionHandler.class, InternalTokenProperties.class})
 class ExchangeBindingControllerTest {
 
     @Autowired
@@ -41,6 +46,12 @@ class ExchangeBindingControllerTest {
 
     @MockBean
     private MqProtectionProperties protection;
+
+    @MockBean
+    private AuditEventFactory auditEvents;
+
+    @MockBean
+    private AuditPublisher auditPublisher;
 
     @Test
     void sinRolResponde403() throws Exception {

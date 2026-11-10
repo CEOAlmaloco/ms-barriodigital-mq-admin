@@ -5,28 +5,38 @@ import cl.duoc.barriodigital.mqadmin.domain.AlreadyExistsException;
 import cl.duoc.barriodigital.mqadmin.domain.ExchangeDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ProtectedResourceException;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditEventFactory;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditPublisher;
 import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import org.springframework.stereotype.Service;
 
 /**
  * Orquesta el alta y la baja de exchanges.
  * Rechaza un nombre reservado o uno que el Management ya ve, y solo entonces crea o borra por AMQP.
+ * Publica en audit.timeline tras éxito; RabbitAdminService no conoce Kafka.
  */
 @Service
 public class ExchangeHttpService {
 
+    private static final String RESOURCE = "exchange";
+
     private final RabbitAdminService admin;
     private final RabbitManagementClient management;
     private final MqProtectionProperties protection;
+    private final AuditEventFactory auditEvents;
+    private final AuditPublisher auditPublisher;
 
-    /** Recibe quién declara por AMQP, quién consulta el Management y la lista de nombres protegidos. */
     public ExchangeHttpService(
             RabbitAdminService admin,
             RabbitManagementClient management,
-            MqProtectionProperties protection) {
+            MqProtectionProperties protection,
+            AuditEventFactory auditEvents,
+            AuditPublisher auditPublisher) {
         this.admin = admin;
         this.management = management;
         this.protection = protection;
+        this.auditEvents = auditEvents;
+        this.auditPublisher = auditPublisher;
     }
 
     /**
@@ -41,7 +51,9 @@ public class ExchangeHttpService {
             management.getExchange(declaration.name());
         } catch (ResourceNotFoundException notFound) {
             admin.createExchange(declaration);
-            return ExchangeView.created(declaration);
+            ExchangeView after = ExchangeView.created(declaration);
+            auditPublisher.publish(auditEvents.create(RESOURCE, declaration.name(), "created", null, after));
+            return after;
         }
         throw new AlreadyExistsException("El exchange ya existe");
     }
@@ -55,7 +67,8 @@ public class ExchangeHttpService {
         if (protection.isProtected(name)) {
             throw new ProtectedResourceException();
         }
-        management.getExchange(name);
+        ExchangeView before = management.getExchange(name);
         admin.deleteExchange(name);
+        auditPublisher.publish(auditEvents.create(RESOURCE, name, "deleted", before, null));
     }
 }

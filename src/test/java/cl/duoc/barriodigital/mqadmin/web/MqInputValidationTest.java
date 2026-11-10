@@ -1,12 +1,16 @@
 package cl.duoc.barriodigital.mqadmin.web;
 
+import cl.duoc.barriodigital.mqadmin.config.InternalTokenProperties;
 import cl.duoc.barriodigital.mqadmin.config.MqProtectionProperties;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditEventFactory;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditPublisher;
 import cl.duoc.barriodigital.mqadmin.service.BindingHttpService;
 import cl.duoc.barriodigital.mqadmin.service.ExchangeHttpService;
 import cl.duoc.barriodigital.mqadmin.service.QueueHttpService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitAdminService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitManagementClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -31,12 +36,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ExchangeHttpService.class,
         BindingHttpService.class,
         MqExceptionHandler.class,
-        AdminGateFilter.class
+        AdminGateFilter.class,
+        InternalTokenProperties.class
 })
 class MqInputValidationTest {
 
+    private static final String TOKEN = "test-internal-token";
+
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private InternalTokenProperties tokenProperties;
 
     @MockBean
     private RabbitAdminService admin;
@@ -47,11 +58,26 @@ class MqInputValidationTest {
     @MockBean
     private MqProtectionProperties protection;
 
+    @MockBean
+    private AuditEventFactory auditEvents;
+
+    @MockBean
+    private AuditPublisher auditPublisher;
+
+    @BeforeEach
+    void setToken() {
+        tokenProperties.setInternalToken(TOKEN);
+    }
+
+    private MockHttpServletRequestBuilder withToken(MockHttpServletRequestBuilder request) {
+        return request.header(InternalTokenFilter.HEADER_INTERNAL_TOKEN, TOKEN);
+    }
+
     @Test
     void sinRolNiSiquieraEvaluaElCuerpo() throws Exception {
-        mvc.perform(post("/api/mq/queues")
+        mvc.perform(withToken(post("/api/mq/queues")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("esto no es json"))
+                        .content("esto no es json")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.timestamp").isNotEmpty())
                 .andExpect(jsonPath("$.status").value(403))
@@ -72,15 +98,15 @@ class MqInputValidationTest {
     @Test
     void prefijoAmqResponde400() throws Exception {
         expectName("amq.direct", MqNames.AMQ);
-        mvc.perform(delete("/api/mq/exchanges/amq.topic").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(delete("/api/mq/exchanges/amq.topic").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(MqNames.AMQ));
-        mvc.perform(post("/api/mq/bindings")
+        mvc.perform(withToken(post("/api/mq/bindings")
                         .header(AdminCaller.HEADER_USER_ROLES, "Admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"exchange":"amq.topic","queue":"q.demo.avisos","routingKey":"aviso.nuevo"}
-                                """))
+                                """)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(MqNames.AMQ));
         verify(admin, never()).deleteExchange(any());
@@ -104,12 +130,12 @@ class MqInputValidationTest {
         expectQueue("""
                 {"name":"q.demo.avisos","deadLetterRoutingKey":"avisos.dead"}
                 """, MqNames.DLX);
-        mvc.perform(post("/api/mq/bindings")
+        mvc.perform(withToken(post("/api/mq/bindings")
                         .header(AdminCaller.HEADER_USER_ROLES, "Admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"exchange":"demo.topic","queue":"q.demo.avisos","routingKey":"aviso nuevo"}
-                                """))
+                                """)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(MqNames.ROUTING))
                 .andExpect(jsonPath("$.path").value("/api/mq/bindings"));
@@ -120,14 +146,14 @@ class MqInputValidationTest {
         when(protection.isProtected("q.cmd.email")).thenReturn(true);
         when(protection.isProtected("cmd.topic")).thenReturn(true);
 
-        mvc.perform(delete("/api/mq/queues/q.cmd.email").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(delete("/api/mq/queues/q.cmd.email").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("El nombre está reservado para la topología"))
                 .andExpect(jsonPath("$.path").value("/api/mq/queues/q.cmd.email"));
-        mvc.perform(delete("/api/mq/queues/q.cmd.email/messages").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(delete("/api/mq/queues/q.cmd.email/messages").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("El nombre está reservado para la topología"));
-        mvc.perform(delete("/api/mq/exchanges/cmd.topic").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(delete("/api/mq/exchanges/cmd.topic").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("El nombre está reservado para la topología"));
 
@@ -140,7 +166,7 @@ class MqInputValidationTest {
     void nombreValidoQueNoExisteSigueSiendo404() throws Exception {
         when(management.getQueue("q.no.existe")).thenThrow(new ResourceNotFoundException("La cola no existe"));
 
-        mvc.perform(get("/api/mq/queues/q.no.existe").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(get("/api/mq/queues/q.no.existe").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
@@ -148,7 +174,7 @@ class MqInputValidationTest {
                 .andExpect(jsonPath("$.timestamp").isNotEmpty())
                 .andExpect(jsonPath("$.path").value("/api/mq/queues/q.no.existe"));
 
-        mvc.perform(get("/api/mq/queues/q demo").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
+        mvc.perform(withToken(get("/api/mq/queues/q demo").header(AdminCaller.HEADER_USER_ROLES, "Admin")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(MqNames.FORMAT));
         verify(management, never()).getQueue("q demo");
@@ -159,10 +185,10 @@ class MqInputValidationTest {
     }
 
     private void expectQueue(String json, String message) throws Exception {
-        mvc.perform(post("/api/mq/queues")
+        mvc.perform(withToken(post("/api/mq/queues")
                         .header(AdminCaller.HEADER_USER_ROLES, "Admin")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(json)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
