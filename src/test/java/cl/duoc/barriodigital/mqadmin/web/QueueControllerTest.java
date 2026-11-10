@@ -1,14 +1,18 @@
 package cl.duoc.barriodigital.mqadmin.web;
 
+import cl.duoc.barriodigital.mqadmin.config.InternalTokenProperties;
 import cl.duoc.barriodigital.mqadmin.config.MqProtectionProperties;
 import cl.duoc.barriodigital.mqadmin.domain.QueueDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.QueueStatus;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditEventFactory;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditPublisher;
 import cl.duoc.barriodigital.mqadmin.service.QueueHttpService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitAdminService;
 import cl.duoc.barriodigital.mqadmin.service.RabbitManagementClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -28,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = QueueController.class)
-@Import({QueueHttpService.class, MqExceptionHandler.class})
+@AutoConfigureMockMvc(addFilters = false)
+@Import({QueueHttpService.class, MqExceptionHandler.class, InternalTokenProperties.class})
 class QueueControllerTest {
 
     @Autowired
@@ -42,6 +47,12 @@ class QueueControllerTest {
 
     @MockBean
     private MqProtectionProperties protection;
+
+    @MockBean
+    private AuditEventFactory auditEvents;
+
+    @MockBean
+    private AuditPublisher auditPublisher;
 
     @Test
     void sinRolTodosLosEndpointsResponden403() throws Exception {
@@ -98,6 +109,8 @@ class QueueControllerTest {
     @Test
     void deleteResponde204Y404SiNoExiste() throws Exception {
         when(admin.queueInfo("q.demo.avisos")).thenReturn(new QueueStatus("q.demo.avisos", 0, 0));
+        when(management.getQueue("q.demo.avisos")).thenReturn(
+                new QueueView("q.demo.avisos", 0, 0, true, null, null, null));
         mvc.perform(delete("/api/mq/queues/q.demo.avisos").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
                 .andExpect(status().isNoContent());
         verify(admin).deleteQueue("q.demo.avisos");

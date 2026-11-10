@@ -6,6 +6,8 @@ import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.InvalidArgumentException;
 import cl.duoc.barriodigital.mqadmin.domain.ProtectedResourceException;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditEventFactory;
+import cl.duoc.barriodigital.mqadmin.messaging.AuditPublisher;
 import cl.duoc.barriodigital.mqadmin.web.BindingView;
 import cl.duoc.barriodigital.mqadmin.web.ExchangeView;
 import org.springframework.stereotype.Service;
@@ -13,24 +15,31 @@ import org.springframework.stereotype.Service;
 /**
  * Orquesta el alta y la baja de bindings.
  * Comprueba en el Management que el exchange y la cola existan antes de crear o borrar el enlace por AMQP.
+ * Publica en audit.timeline tras éxito; RabbitAdminService no conoce Kafka.
  */
 @Service
 public class BindingHttpService {
 
     private static final String ROUTING_KEY_MESSAGE = "La routing key no cumple el formato";
+    private static final String RESOURCE = "binding";
 
     private final RabbitAdminService admin;
     private final RabbitManagementClient management;
     private final MqProtectionProperties protection;
+    private final AuditEventFactory auditEvents;
+    private final AuditPublisher auditPublisher;
 
-    /** Recibe quién declara por AMQP, quién consulta el Management y la lista de nombres protegidos. */
     public BindingHttpService(
             RabbitAdminService admin,
             RabbitManagementClient management,
-            MqProtectionProperties protection) {
+            MqProtectionProperties protection,
+            AuditEventFactory auditEvents,
+            AuditPublisher auditPublisher) {
         this.admin = admin;
         this.management = management;
         this.protection = protection;
+        this.auditEvents = auditEvents;
+        this.auditPublisher = auditPublisher;
     }
 
     /**
@@ -44,7 +53,9 @@ public class BindingHttpService {
             throw new AlreadyExistsException("El binding ya existe");
         }
         admin.bind(declaration);
-        return BindingView.of(declaration);
+        BindingView after = BindingView.of(declaration);
+        auditPublisher.publish(auditEvents.create(RESOURCE, resourceId(declaration), "created", null, after));
+        return after;
     }
 
     /**
@@ -58,7 +69,9 @@ public class BindingHttpService {
         if (!management.hasBinding(declaration)) {
             throw new ResourceNotFoundException("El binding no existe");
         }
+        BindingView before = BindingView.of(declaration);
         admin.unbind(declaration);
+        auditPublisher.publish(auditEvents.create(RESOURCE, resourceId(declaration), "deleted", before, null));
     }
 
     /**
@@ -85,5 +98,10 @@ public class BindingHttpService {
         if (routingKey == null || routingKey.isBlank()) {
             throw new InvalidArgumentException(ROUTING_KEY_MESSAGE);
         }
+    }
+
+    static String resourceId(BindingDeclaration declaration) {
+        String routingKey = declaration.routingKey() == null ? "" : declaration.routingKey();
+        return declaration.exchange() + "/" + declaration.queue() + "/" + routingKey;
     }
 }

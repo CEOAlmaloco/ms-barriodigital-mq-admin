@@ -15,11 +15,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Comprueba el rol Admin antes de leer el cuerpo.
+ * Comprueba el rol Admin antes de leer el cuerpo (después de {@link InternalTokenFilter}).
  * Si no es Admin, responde 403 y no interpreta el JSON: un cuerpo inválido sin Admin es 403, no 400.
  */
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class AdminGateFilter extends OncePerRequestFilter {
 
     private final ObjectMapper mapper;
