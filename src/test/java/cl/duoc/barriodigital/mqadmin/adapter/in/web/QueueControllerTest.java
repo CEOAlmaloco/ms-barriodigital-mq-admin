@@ -99,7 +99,7 @@ class QueueControllerTest {
     @Test
     void getListaNombreMensajesYConsumidores() throws Exception {
         when(management.listQueues()).thenReturn(List.of(
-                new QueueView("q.cmd.email", 2, 1, true, null, "cmd.dead.dlx", "email.dead")));
+                new QueueView("q.cmd.email", 2, 2, 0, 1, true, null, "cmd.dead.dlx", "email.dead", null, null, null, null, null)));
 
         mvc.perform(get("/api/mq/queues").header(AdminCaller.HEADER_USER_ROLES, "ROLE_Admin"))
                 .andExpect(status().isOk())
@@ -112,7 +112,7 @@ class QueueControllerTest {
     void deleteResponde204Y404SiNoExiste() throws Exception {
         when(admin.queueInfo("q.demo.avisos")).thenReturn(new QueueStatus("q.demo.avisos", 0, 0));
         when(management.getQueue("q.demo.avisos")).thenReturn(
-                new QueueView("q.demo.avisos", 0, 0, true, null, null, null));
+                new QueueView("q.demo.avisos", 0, 0, 0, 0, true, null, null, null, null, null, null, null, null));
         mvc.perform(delete("/api/mq/queues/q.demo.avisos").header(AdminCaller.HEADER_USER_ROLES, "Admin"))
                 .andExpect(status().isNoContent());
         verify(admin).deleteQueue("q.demo.avisos");
