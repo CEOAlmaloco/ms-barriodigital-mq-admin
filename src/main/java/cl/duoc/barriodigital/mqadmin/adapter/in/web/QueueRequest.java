@@ -1,0 +1,28 @@
+package cl.duoc.barriodigital.mqadmin.adapter.in.web;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
+/**
+ * Cuerpo para crear una cola.
+ * Trae el nombre, si sobrevive a un reinicio, el TTL en milisegundos y, si se quiere, el dead-letter.
+ */
+@DeadLetter
+@Schema(description = "Cola nueva. durable vale true si se omite.")
+public record QueueRequest(
+        @MqName
+        @Schema(example = "q.demo.avisos")
+        String name,
+        @Schema(example = "true")
+        Boolean durable,
+        @Min(value = 1, message = MqNames.TTL)
+        @Max(value = 86_400_000, message = MqNames.TTL)
+        @Schema(example = "60000", description = "Milisegundos. Entre 1 y 86400000.")
+        Integer ttl,
+        @Schema(example = "cmd.dead.dlx")
+        String deadLetterExchange,
+        @Schema(example = "avisos.dead")
+        String deadLetterRoutingKey
+) {
+}

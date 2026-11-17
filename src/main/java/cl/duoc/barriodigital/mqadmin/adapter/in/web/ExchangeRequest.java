@@ -1,0 +1,21 @@
+package cl.duoc.barriodigital.mqadmin.adapter.in.web;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * Cuerpo para crear un exchange.
+ * Trae el nombre, el tipo direct, topic o fanout, y si debe seguir tras un reinicio de RabbitMQ.
+ * Si durable se omite, se declara durable.
+ */
+@Schema(description = "Exchange nuevo. durable vale true si se omite. type es direct, topic o fanout.")
+public record ExchangeRequest(
+        @MqName
+        @Schema(example = "demo.topic")
+        String name,
+        @ExchangeKind
+        @Schema(example = "topic", allowableValues = {"direct", "topic", "fanout"})
+        String type,
+        @Schema(example = "true")
+        Boolean durable
+) {
+}
