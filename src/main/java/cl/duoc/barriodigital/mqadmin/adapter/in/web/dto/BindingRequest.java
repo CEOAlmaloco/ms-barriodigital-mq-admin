@@ -1,4 +1,6 @@
-package cl.duoc.barriodigital.mqadmin.adapter.in.web;
+package cl.duoc.barriodigital.mqadmin.adapter.in.web.dto;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.MqName;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.RoutingKey;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

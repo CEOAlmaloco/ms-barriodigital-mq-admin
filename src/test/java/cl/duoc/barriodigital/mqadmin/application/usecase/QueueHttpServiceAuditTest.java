@@ -19,7 +19,7 @@ import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditActor;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditEnvelope;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditEventFactory;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditPublisher;
-import cl.duoc.barriodigital.mqadmin.adapter.in.web.QueueView;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueView;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

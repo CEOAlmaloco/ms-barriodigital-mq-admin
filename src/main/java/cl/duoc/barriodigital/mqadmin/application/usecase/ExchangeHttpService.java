@@ -7,7 +7,7 @@ import cl.duoc.barriodigital.mqadmin.domain.ProtectedResourceException;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditEventFactory;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditPublisher;
-import cl.duoc.barriodigital.mqadmin.adapter.in.web.ExchangeView;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.ExchangeView;
 import org.springframework.stereotype.Service;
 
 /**

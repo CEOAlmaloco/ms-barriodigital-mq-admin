@@ -1,5 +1,8 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.ExchangeRequest;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.ExchangeView;
+
 import cl.duoc.barriodigital.mqadmin.domain.ExchangeDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.ExchangeType;
 import cl.duoc.barriodigital.mqadmin.application.usecase.ExchangeHttpService;

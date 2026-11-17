@@ -1,4 +1,5 @@
-package cl.duoc.barriodigital.mqadmin.adapter.in.web;
+package cl.duoc.barriodigital.mqadmin.adapter.in.web.dto;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.RoutingKey;
 
 import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 

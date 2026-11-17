@@ -8,7 +8,7 @@ import cl.duoc.barriodigital.mqadmin.domain.QueueStatus;
 import cl.duoc.barriodigital.mqadmin.domain.ResourceNotFoundException;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditEventFactory;
 import cl.duoc.barriodigital.mqadmin.adapter.out.messaging.AuditPublisher;
-import cl.duoc.barriodigital.mqadmin.adapter.in.web.QueueView;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueView;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,5 +1,7 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueRequest;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

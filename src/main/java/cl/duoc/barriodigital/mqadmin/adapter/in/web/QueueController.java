@@ -1,5 +1,8 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueRequest;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueView;
+
 import cl.duoc.barriodigital.mqadmin.domain.QueueDeclaration;
 import cl.duoc.barriodigital.mqadmin.application.usecase.QueueHttpService;
 import org.springframework.http.HttpStatus;

@@ -1,5 +1,8 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.BindingRequest;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.BindingView;
+
 import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
 import cl.duoc.barriodigital.mqadmin.domain.InvalidArgumentException;
 import cl.duoc.barriodigital.mqadmin.application.usecase.BindingHttpService;

@@ -1,5 +1,7 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.MqErrorBody;
+
 import cl.duoc.barriodigital.mqadmin.infrastructure.config.InternalTokenProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;

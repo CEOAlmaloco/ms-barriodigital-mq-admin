@@ -1,5 +1,7 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.MqErrorBody;
+
 import cl.duoc.barriodigital.mqadmin.domain.AlreadyExistsException;
 import cl.duoc.barriodigital.mqadmin.domain.ConfigurationConflictException;
 import cl.duoc.barriodigital.mqadmin.domain.InvalidArgumentException;

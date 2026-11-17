@@ -1,5 +1,8 @@
 package cl.duoc.barriodigital.mqadmin.adapter.in.web;
 
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.ExchangeView;
+import cl.duoc.barriodigital.mqadmin.adapter.in.web.dto.QueueView;
+
 import cl.duoc.barriodigital.mqadmin.infrastructure.config.InternalTokenProperties;
 import cl.duoc.barriodigital.mqadmin.infrastructure.config.MqProtectionProperties;
 import cl.duoc.barriodigital.mqadmin.domain.BindingDeclaration;
