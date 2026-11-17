@@ -125,17 +125,42 @@ public class RabbitManagementClient {
                 node.path("durable").asBoolean(true));
     }
 
-    /** Copia nombre, mensajes, consumidores, durable, TTL y dead-letter desde el JSON del Management. */
+    /** Copia inventario, dead-letter y tasas del JSON del Management. */
     static QueueView toView(JsonNode node) {
         JsonNode arguments = node.path("arguments");
+        JsonNode stats = node.path("message_stats");
+        int ready = node.path("messages_ready").asInt(0);
+        int unacked = node.path("messages_unacknowledged").asInt(0);
+        int total = node.has("messages") ? node.path("messages").asInt(0) : ready + unacked;
+        String state = textOrNull(node, "state");
+        Long memory = node.has("memory") && !node.get("memory").isNull() ? node.path("memory").asLong() : null;
         return new QueueView(
                 node.path("name").asText(),
-                node.path("messages").asInt(0),
+                total,
+                ready,
+                unacked,
                 node.path("consumers").asInt(0),
                 node.path("durable").asBoolean(true),
                 numberOrNull(arguments, "x-message-ttl"),
                 textOrNull(arguments, "x-dead-letter-exchange"),
-                textOrNull(arguments, "x-dead-letter-routing-key"));
+                textOrNull(arguments, "x-dead-letter-routing-key"),
+                state,
+                memory,
+                rateOrNull(stats, "publish_details"),
+                rateOrNull(stats, "deliver_get_details"),
+                rateOrNull(stats, "ack_details"));
+    }
+
+    /** Lee rate de un bloque *_details del Management. */
+    private static Double rateOrNull(JsonNode stats, String field) {
+        if (stats == null || stats.isMissingNode() || stats.isNull()) {
+            return null;
+        }
+        JsonNode details = stats.get(field);
+        if (details == null || details.isNull() || !details.has("rate")) {
+            return null;
+        }
+        return details.path("rate").asDouble();
     }
 
     /** Lee un número de los argumentos. Si el campo no viene, devuelve null. */
@@ -147,9 +172,9 @@ public class RabbitManagementClient {
         return value.asInt();
     }
 
-    /** Lee un texto de los argumentos. Si no viene o está en blanco, devuelve null. */
-    private static String textOrNull(JsonNode arguments, String field) {
-        JsonNode value = arguments.get(field);
+    /** Lee un texto. Si no viene o está en blanco, devuelve null. */
+    private static String textOrNull(JsonNode node, String field) {
+        JsonNode value = node.get(field);
         if (value == null || value.isNull()) {
             return null;
         }

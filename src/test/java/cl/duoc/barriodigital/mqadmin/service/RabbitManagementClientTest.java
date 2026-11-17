@@ -35,15 +35,22 @@ class RabbitManagementClientTest {
     @Test
     void elTotalDeMensajesSaleDelCampoMessages() throws Exception {
         String json = """
-                {"name":"q.cmd.email","messages":3,"messages_ready":2,"messages_unacknowledged":1,"consumers":1,"durable":true,"arguments":{"x-message-ttl":60000,"x-dead-letter-exchange":"cmd.dead.dlx","x-dead-letter-routing-key":"email.dead"}}
+                {"name":"q.cmd.email","messages":3,"messages_ready":2,"messages_unacknowledged":1,"consumers":1,"durable":true,"state":"running","memory":4096,"message_stats":{"publish_details":{"rate":1.5},"deliver_get_details":{"rate":1.0},"ack_details":{"rate":0.5}},"arguments":{"x-message-ttl":60000,"x-dead-letter-exchange":"cmd.dead.dlx","x-dead-letter-routing-key":"email.dead"}}
                 """;
         QueueView view = RabbitManagementClient.toView(new ObjectMapper().readTree(json));
         assertEquals("q.cmd.email", view.name());
         assertEquals(3, view.messages());
+        assertEquals(2, view.messagesReady());
+        assertEquals(1, view.messagesUnacked());
         assertEquals(1, view.consumers());
         assertEquals(60000, view.ttl());
         assertEquals("cmd.dead.dlx", view.deadLetterExchange());
         assertEquals("email.dead", view.deadLetterRoutingKey());
+        assertEquals("running", view.state());
+        assertEquals(4096L, view.memoryBytes());
+        assertEquals(1.5, view.publishRate());
+        assertEquals(1.0, view.deliverRate());
+        assertEquals(0.5, view.ackRate());
     }
 
     @Test
