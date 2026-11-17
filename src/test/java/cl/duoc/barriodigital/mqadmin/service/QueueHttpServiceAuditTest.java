@@ -83,7 +83,7 @@ class QueueHttpServiceAuditTest {
     @Test
     void borrarPublicaQueueDeleted() {
         when(admin.queueInfo("q.demo.avisos")).thenReturn(new QueueStatus("q.demo.avisos", 0, 0));
-        QueueView before = new QueueView("q.demo.avisos", 0, 0, true, null, null, null);
+        QueueView before = new QueueView("q.demo.avisos", 0, 0, 0, 0, true, null, null, null, null, null, null, null, null);
         when(management.getQueue("q.demo.avisos")).thenReturn(before);
 
         service.delete("q.demo.avisos");

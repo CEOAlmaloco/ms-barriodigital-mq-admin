@@ -152,7 +152,7 @@ class ExchangeBindingControllerTest {
         ExchangeView topic = new ExchangeView("demo.topic", "topic", true);
         when(management.getExchange("demo.topic")).thenReturn(topic);
         when(management.getQueue("q.demo.avisos")).thenReturn(
-                new QueueView("q.demo.avisos", 0, 0, true, null, null, null));
+                new QueueView("q.demo.avisos", 0, 0, 0, 0, true, null, null, null, null, null, null, null, null));
         when(management.hasBinding(new BindingDeclaration("demo.topic", "q.demo.avisos", "aviso.nuevo")))
                 .thenReturn(false, true);
 
@@ -205,7 +205,7 @@ class ExchangeBindingControllerTest {
     void bindingRepetidoOReservadoResponde409YElAusente404() throws Exception {
         when(management.getExchange("demo.topic")).thenReturn(new ExchangeView("demo.topic", "topic", true));
         when(management.getQueue("q.demo.avisos")).thenReturn(
-                new QueueView("q.demo.avisos", 0, 0, true, null, null, null));
+                new QueueView("q.demo.avisos", 0, 0, 0, 0, true, null, null, null, null, null, null, null, null));
         when(management.hasBinding(any())).thenReturn(true);
 
         mvc.perform(post("/api/mq/bindings")
@@ -242,7 +242,7 @@ class ExchangeBindingControllerTest {
         when(management.getExchange("demo.topic")).thenReturn(new ExchangeView("demo.topic", "topic", true));
         when(management.getExchange("demo.fanout")).thenReturn(new ExchangeView("demo.fanout", "fanout", true));
         when(management.getQueue("q.demo.avisos")).thenReturn(
-                new QueueView("q.demo.avisos", 0, 0, true, null, null, null));
+                new QueueView("q.demo.avisos", 0, 0, 0, 0, true, null, null, null, null, null, null, null, null));
 
         mvc.perform(post("/api/mq/bindings")
                         .header(AdminCaller.HEADER_USER_ROLES, "Admin")
