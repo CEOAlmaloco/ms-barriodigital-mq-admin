@@ -8,6 +8,11 @@ spring:
     name: ms-barriodigital-mq-admin
   config:
     import: optional:file:.env[.properties]
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # Solo kafka-admin crea topics. mq-admin no declara NewTopic.
+    admin:
+      auto-create: false
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -19,6 +24,10 @@ management:
     web:
       exposure:
         include: health,info
+  health:
+    # Kafka caído no tumba el health: la auditoría es best-effort.
+    kafka:
+      enabled: false
 
 springdoc:
   api-docs:
@@ -27,6 +36,9 @@ springdoc:
     path: /swagger-ui.html
 
 barriodigital:
+  security:
+    # Token compartido con el BFF. Sin él, /api/mq/** responde 401.
+    internal-token: ${INTERNAL_TOKEN:}
   mq:
     protected-names:
       - amq.direct
