@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: ms-barriodigital-mq-admin
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /api/mq/queues:
+    get:
+      operationId: queues
+      responses:
+        '200':
+          description: OK
