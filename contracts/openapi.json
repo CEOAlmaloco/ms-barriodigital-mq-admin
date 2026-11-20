@@ -7,7 +7,7 @@
   "paths" : {
     "/api/mq/bindings" : {
       "delete" : {
-        "operationId" : "delete_2",
+        "operationId" : "delete_api_mq_bindings",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
@@ -45,7 +45,7 @@
         "tags" : [ "Bindings" ]
       },
       "post" : {
-        "operationId" : "create_2",
+        "operationId" : "post_api_mq_bindings",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
@@ -81,7 +81,7 @@
     },
     "/api/mq/exchanges" : {
       "post" : {
-        "operationId" : "create_1",
+        "operationId" : "post_api_mq_exchanges",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
@@ -117,7 +117,7 @@
     },
     "/api/mq/exchanges/{name}" : {
       "delete" : {
-        "operationId" : "delete_1",
+        "operationId" : "delete_api_mq_exchanges_name",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
@@ -170,7 +170,7 @@
         "tags" : [ "Colas" ]
       },
       "post" : {
-        "operationId" : "create",
+        "operationId" : "post_api_mq_queues",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
@@ -206,7 +206,7 @@
     },
     "/api/mq/queues/{name}" : {
       "delete" : {
-        "operationId" : "delete",
+        "operationId" : "delete_api_mq_queues_name",
         "parameters" : [ {
           "in" : "header",
           "name" : "X-User-Roles",
