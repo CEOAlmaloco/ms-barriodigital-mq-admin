@@ -1,0 +1,446 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "ms-barriodigital-mq-admin",
+    "version" : "1"
+  },
+  "paths" : {
+    "/api/mq/bindings" : {
+      "delete" : {
+        "operationId" : "delete_2",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "exchange",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "queue",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "routingKey",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Bindings" ]
+      },
+      "post" : {
+        "operationId" : "create_2",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BindingRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BindingView"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Bindings" ]
+      }
+    },
+    "/api/mq/exchanges" : {
+      "post" : {
+        "operationId" : "create_1",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ExchangeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExchangeView"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Exchanges" ]
+      }
+    },
+    "/api/mq/exchanges/{name}" : {
+      "delete" : {
+        "operationId" : "delete_1",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "name",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Exchanges" ]
+      }
+    },
+    "/api/mq/queues" : {
+      "get" : {
+        "operationId" : "list",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/QueueView"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Colas" ]
+      },
+      "post" : {
+        "operationId" : "create",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QueueRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueView"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Colas" ]
+      }
+    },
+    "/api/mq/queues/{name}" : {
+      "delete" : {
+        "operationId" : "delete",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "name",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Colas" ]
+      },
+      "get" : {
+        "operationId" : "get",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "name",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QueueView"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Colas" ]
+      }
+    },
+    "/api/mq/queues/{name}/messages" : {
+      "delete" : {
+        "operationId" : "purge",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-User-Roles",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "name",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "Colas" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "BindingRequest" : {
+        "type" : "object",
+        "description" : "Enlace entre un exchange y una cola. routingKey vacía solo vale en fanout.",
+        "properties" : {
+          "exchange" : {
+            "type" : "string",
+            "example" : "demo.topic"
+          },
+          "queue" : {
+            "type" : "string",
+            "example" : "q.demo.avisos"
+          },
+          "routingKey" : {
+            "type" : "string",
+            "example" : "aviso.nuevo"
+          }
+        }
+      },
+      "BindingView" : {
+        "type" : "object",
+        "properties" : {
+          "exchange" : {
+            "type" : "string"
+          },
+          "queue" : {
+            "type" : "string"
+          },
+          "routingKey" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ExchangeRequest" : {
+        "type" : "object",
+        "description" : "Exchange nuevo. durable vale true si se omite. type es direct, topic o fanout.",
+        "properties" : {
+          "durable" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "demo.topic"
+          },
+          "type" : {
+            "type" : "string",
+            "example" : "topic",
+            "enum" : [ "direct", "topic", "fanout" ]
+          }
+        }
+      },
+      "ExchangeView" : {
+        "type" : "object",
+        "properties" : {
+          "durable" : {
+            "type" : "boolean"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        }
+      },
+      "QueueRequest" : {
+        "type" : "object",
+        "description" : "Cola nueva. durable vale true si se omite.",
+        "properties" : {
+          "deadLetterExchange" : {
+            "type" : "string",
+            "example" : "cmd.dead.dlx"
+          },
+          "deadLetterRoutingKey" : {
+            "type" : "string",
+            "example" : "avisos.dead"
+          },
+          "durable" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "q.demo.avisos"
+          },
+          "ttl" : {
+            "maximum" : 86400000,
+            "minimum" : 1,
+            "type" : "integer",
+            "description" : "Milisegundos. Entre 1 y 86400000.",
+            "format" : "int32",
+            "example" : 60000
+          }
+        }
+      },
+      "QueueView" : {
+        "type" : "object",
+        "properties" : {
+          "ackRate" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "consumers" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "deadLetterExchange" : {
+            "type" : "string"
+          },
+          "deadLetterRoutingKey" : {
+            "type" : "string"
+          },
+          "deliverRate" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "durable" : {
+            "type" : "boolean"
+          },
+          "memoryBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "messages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "messagesReady" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "messagesUnacked" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "publishRate" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "state" : {
+            "type" : "string"
+          },
+          "ttl" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      }
+    }
+  }
+}

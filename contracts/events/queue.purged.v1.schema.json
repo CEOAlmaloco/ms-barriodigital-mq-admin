@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "queue.purged v1",
+  "allOf": [
+    {
+      "$ref": "envelope.schema.json"
+    }
+  ],
+  "properties": {
+    "eventType": {
+      "const": "queue.purged"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resourceType",
+        "resourceId",
+        "action",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "resourceType": {
+          "const": "queue"
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "const": "purged"
+        },
+        "before": {
+          "type": "object"
+        },
+        "after": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "unevaluatedProperties": false
+}
