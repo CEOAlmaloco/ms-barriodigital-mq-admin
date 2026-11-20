@@ -4,11 +4,9 @@ Administración de RabbitMQ de **BarrioDigital**.
 
 Puerto: **8084**
 
-
-<!-- EP3.5-01 contratos -->
 ## Contratos
 
-Contratos vigentes en `barriodigital-infra` (EP3.5-01). Índice: [docs/contratos](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/README.md).
+Contratos vigentes en `barriodigital-infra` ([índice](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/README.md)):
 
 - [API mq-admin](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/mq-admin.md)
 - [Topología Rabbit](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/rabbit-topologia.md)
