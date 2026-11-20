@@ -4,6 +4,13 @@ Administración de RabbitMQ de **BarrioDigital**.
 
 Puerto: **8084**
 
+## Contratos
+
+Contratos vigentes en `barriodigital-infra` ([índice](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/README.md)):
+
+- [API mq-admin](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/mq-admin.md)
+- [Topología Rabbit](https://github.com/CEOAlmaloco/barriodigital-infra/blob/develop/docs/contratos/rabbit-topologia.md)
+
 ## Arranque
 
 El broker tiene que estar levantado (`mq/compose.yml` en `barriodigital-infra`). Este servicio no lo incluye.
