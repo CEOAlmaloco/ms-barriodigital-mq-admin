@@ -47,3 +47,9 @@ Tras crear o eliminar colas, exchanges o bindings, o vaciar una cola, mq-admin e
 `RabbitAdminService` no importa clases de Kafka: publican `QueueHttpService`, `ExchangeHttpService` y `BindingHttpService`.
 
 Si Kafka falla o el servicio se apaga con eventos pendientes, queda `ERROR evento-auditoria-no-publicado` con el JSON. Un reinicio controlado (`docker compose restart`) no pierde esos eventos: se reconstruyen desde el log. Sin `NewTopic`; `spring.kafka.admin.auto-create=false`. El health de Kafka está desactivado.
+
+## Contratos verificables
+
+- `contracts/openapi.json`: contrato HTTP del servicio, generado desde los controladores. `OpenApiContractTest` falla si una ruta, un parámetro o un cuerpo cambia sin actualizarlo. Para regenerarlo después de revisar el cambio: `./mvnw test -Dtest=OpenApiContractTest -Dopenapi.update=true`.
+- `contracts/events/`: JSON Schema de cada `eventType` que el servicio publica en `audit.timeline`, con su versión en el nombre del archivo. `EventSchemaContractTest` valida contra ellos el JSON real del evento. Un cambio de campos obliga a actualizar el esquema y a decidir si sube `schemaVersion` (`kafka-topicos.md`, sección 11).
+- La CI corre las pruebas, busca secretos en los commits nuevos con gitleaks y escanea la imagen con Trivy. Falla si el cambio agrega una vulnerabilidad crítica que la rama destino no tenía; las existentes quedan en el resumen del job.
